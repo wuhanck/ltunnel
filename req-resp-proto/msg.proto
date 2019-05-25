@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+message ReqMsg {
+	uint32 req_stream_id = 1;
+	bytes req_content = 2;
+	uint32 req_type = 3;
+}
+
+message RespMsg {
+	uint32 resp_stream_id = 1;
+	bytes resp_content = 2;
+	uint32 resp_type = 3;
+}
