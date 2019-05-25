@@ -25,6 +25,8 @@ const open = (port, host, _resp_srv)=>{
 	}
 }
 
+module.exports.open = open
+
 if (require.main === module) {
 
 const RespPrvOpen = require('../req-resp-pub-prv/resp-prv.js').open
