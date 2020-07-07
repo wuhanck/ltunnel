@@ -4,18 +4,18 @@ a very simple local-tunnel.
 usage:
 
 //public server    
-node ltunnel-s server-port
+node ltunnel-s server-port token
 
 //for example on a public server-ip 8.8.8.8    
-node ltunnel-s 10086
+node ltunnel-s 10086 xyz
 
 NOTE: USE 1xxxx port
 
 //NATed machine forward local-port to public    
-node ltunnel-c server-ip server-port local-port
+node ltunnel-c server-ip server-port local-port token
 
 //for example forward 22 to public    
-node ltunnel-c 8.8.8.8 10086 22
+node ltunnel-c 8.8.8.8 10086 22 xyz
 
 
 //any machine wants to connect to your NATed machine    

@@ -3,8 +3,8 @@
 const RespSvcOpen = require('../req-resp-svc/resp-svc.js').open
 const WsClnChnlOpen = require('../ws-chnl/cln-chnl.js').open
 
-const open = (path)=>{
-    var chnl = WsClnChnlOpen(path)
+const open = (path, origin)=>{
+    var chnl = WsClnChnlOpen(path, origin)
     return RespSvcOpen(chnl)
 }
 

@@ -8,7 +8,7 @@ const Fs = require('fs')
 //port, host should present service which is entrance for many srv-chnls.
 //We just simplified for test.
 
-const open = (port, host)=>{
+const open = (port, host, valid)=>{
 	Assert(!!port)
 
 	var http_srv = Http.createServer()//Flag.
@@ -63,9 +63,14 @@ const open = (port, host)=>{
 		if (!http_srv)
 			return
 		http_srv.listen(port, host, ()=>{
-			ws_srv = new WebSocketServer({httpServer: http_srv, autoAcceptConnections: true,})
+			ws_srv = new WebSocketServer({httpServer: http_srv, autoAcceptConnections: false,})
 			ws_srv.on('close', (in_ws)=>{if (in_ws === ws) on_ws_close()})
-			ws_srv.on('connect', (in_ws)=>{
+			ws_srv.on('request', (request)=>{
+				if (!valid(request.origin)) {
+					request.reject()
+					return
+				}
+				const in_ws = request.accept()
 				close_ws(true, true)//Now, just close and drop the old ws.
 				if (!http_srv) {//Any event may happens after closed.
 					in_ws.close()
