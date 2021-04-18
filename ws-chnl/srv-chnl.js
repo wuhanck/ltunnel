@@ -3,7 +3,6 @@
 const Assert = require('assert')
 const WebSocketServer = require('websocket').server
 const Http = require('http')
-const Fs = require('fs')
 
 //port, host should present service which is entrance for many srv-chnls.
 //We just simplified for test.
@@ -50,8 +49,8 @@ const open = (port, host, valid)=>{
 	}
 	const on_ws_message = (msg)=>{
 		var buf = !msg.binaryData ? null : msg.binaryData
-		if (!buf)//Something wrong. Close websocket.
-			close_ws(true, false)
+		if (!buf)//Something wrong. Drop websocket.
+			close_ws(false, true)
 		else if (!!msg_cb)
 			msg_cb(buf)
 	}
@@ -71,14 +70,14 @@ const open = (port, host, valid)=>{
 					return
 				}
 				const in_ws = request.accept()
-				close_ws(true, true)//Now, just close and drop the old ws.
+				close_ws(false, true)//Now, just drop the old ws.
 				if (!http_srv) {//Any event may happens after closed.
-					in_ws.close()
+					in_ws.drop()
 					return
 				}
 				ws_chnl = in_ws
 				ws = in_ws//As we only maintain one ws. So we don't use ws close event since ws will change.
-				ws.on('error', (err)=>{if (!!error_cb) error_cb(err)})//Socket-error. It may emitted close soon.
+				ws.on('error', (err)=>{if (!!error_cb) error_cb(err)})//Socket-error. It will emitted close soon.
 				ws.on('message', on_ws_message)
 				if (!!connected_cb)
 					connected_cb()

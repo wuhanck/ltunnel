@@ -53,14 +53,14 @@ const open = (path, origin)=>{
 	}
 	const on_ws_message = (msg)=>{
 		var buf = !msg.binaryData ? null : msg.binaryData
-		if (!buf)//Something wrong. Close websocket.
-			close_ws(true, false)
+		if (!buf)//Something wrong. Drop websocket.
+			close_ws(false, true)
 		else if (!!msg_cb)
 			msg_cb(buf)
 	}
 	const on_timeout_close = ()=>{
 		console.log('on-timeout-close.')
-		close_ws(true, true)
+		close_ws(false, true)
 	}
 	const on_msg = (cb)=>{msg_cb = cb}
 	const on_connected = (cb)=>{connected_cb = cb}
