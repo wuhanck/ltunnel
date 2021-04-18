@@ -6,7 +6,7 @@ const RespPrvOpen = require('./req-resp-pub-prv/resp-prv.js').open
 console.log(process.argv)
 
 const sink_port = parseInt(process.argv[4])
-const sink_host = '127.0.0.1'
+const sink_host = process.argv[6] === undefined ? '127.0.0.1' : process.argv[6]
 
 const c_origin = process.argv[5]
 
