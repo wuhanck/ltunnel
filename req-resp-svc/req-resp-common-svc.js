@@ -1,6 +1,5 @@
 'use strict'
 
-const Assert = require('assert')
 const ReqOpen = require('../req-resp-proto/req.js').open
 const RespOpen = require('../req-resp-proto/resp.js').open
 
