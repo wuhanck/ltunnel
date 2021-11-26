@@ -1,7 +1,9 @@
 'use strict'
 
 const ProtoBuf = require('protobufjs')
-const MsgFactory = ProtoBuf.loadSync(`${__dirname}/msg.proto`)
+const path = require('path')
+const msg_path = path.join(__dirname, '../req-resp-proto/msg.proto')
+const MsgFactory = ProtoBuf.loadSync(msg_path)
 const ReqMsg = MsgFactory.lookup('ReqMsg')
 const RespMsg = MsgFactory.lookup('RespMsg')
 
