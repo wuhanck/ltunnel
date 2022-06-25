@@ -69,7 +69,6 @@ const open = (port, host, req_srv)=>{
 		srv = null
 	}
 	srv.on('message', (msg, rinfo)=>{
-		console.log(rinfo)
 		const vc = vcons.find(rinfo)
 		var in_con
 		if (vc === null) {
