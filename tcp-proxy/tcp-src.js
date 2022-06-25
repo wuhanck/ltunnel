@@ -37,12 +37,14 @@ if (require.main === module) {
 
 const ReqPubOpen = require('../req-resp-pub-prv/req-pub.js').open
 
+const valid = origin=>true
+
 const src_host = '127.0.0.1'
 const src_port = 10086
 const req_host = '127.0.0.1'
 const req_port = 20086
 const MAX_STREAMS = 4096
-const req_srv = ReqPubOpen(req_port, req_host, MAX_STREAMS)
+const req_srv = ReqPubOpen(req_port, req_host, MAX_STREAMS, valid)
 open(src_port, src_host, req_srv)
 req_srv.start()
 
