@@ -14,7 +14,7 @@ const open = (path, origin)=>{
 	var ws//Flag used connection.
 	var ws_chnl//Used for send. Most time, equal to ws.
 	var alive = true
-	var t2close//FIX ME. Wait for websocketclient's impl of timeout.
+	var t2close = null//FIX ME. Wait for websocketclient's impl of timeout.
 	var msg_cb
 	var connected_cb
 	var disconnected_cb
@@ -35,8 +35,9 @@ const open = (path, origin)=>{
 		var ws_tmp = ws
 		ws = null
 
-		if (!!t2close)
-			clearTimeout(t2close)
+		alive = true
+		clearTimeout(t2close)
+		t2close = null
 		if (!!disconnected_cb)
 			disconnected_cb()
 
@@ -83,7 +84,7 @@ const open = (path, origin)=>{
 		} else {
 			alive = false
 			clearTimeout(t2close)
-			t2close = setTimeout(restart_timeout, 2 * 20 * 1000)//2 times of default ping interv
+			t2close = setTimeout(restart_timeout, 2*20*1000)//2 times of default ping interv
 		}
 	}
 
