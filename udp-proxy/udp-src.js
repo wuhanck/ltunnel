@@ -2,26 +2,26 @@
 
 const dgram = require('dgram')
 const avl = require('avl').default
+const enCollator = new Intl.Collator('en')
 
 const rinfo_compare = (ra, rb)=>{
-	if (ra.address < rb.address)
-		return -1
-	else if (ra.address > rb.address)
-		return 1
+	const ret = enCollator.compare(ra.address, rb.address)
+	if (ret !== 0)
+		return ret
 	else
 		return ra.port - rb.port
 }
 
-const VCON_TIMEOUT = 30*1000
+const VCON_TIMEOUT = 240*1000
 
 const gen_vcon = (vcons, s, rinfo)=>{
-	var msg_cb_
-	var close_cb_
+	var msg_cb
+	var close_cb
 	var timeout = null
 	var alive = true
 	const in_con = {
-		on_msg: (msg_cb)=>{msg_cb_ = msg_cb},
-		on_close: (close_cb)=>{close_cb_ = close_cb},
+		on_msg: (cb)=>{msg_cb = cb},
+		on_close: (cb)=>{close_cb = cb},
 		write: (buf)=>{
 			if (!!s) {
 				alive = true
@@ -36,13 +36,13 @@ const gen_vcon = (vcons, s, rinfo)=>{
 			clearTimeout(timeout)
 			timeout = null
 			vcons.remove(rinfo)
-			if (!!close_cb_)
-				close_cb_()
+			if (!!close_cb)
+				close_cb()
 		},
 		inj_msg: (msg)=>{
-			if (!!msg_cb_) {
+			if (!!msg_cb) {
 				alive = true
-				msg_cb_(msg)
+				msg_cb(msg)
 			}
 		},
 	}
@@ -84,7 +84,6 @@ const open = (port, host, req_srv)=>{
 			in_con.on_msg((buf)=>{stream.send(buf)})
 			in_con.on_close(()=>{stream.rst()})
 			stream.on_msg((buf)=>{in_con.write(buf)})
-			stream.on_peer_end(()=>{})
 			stream.on_close(()=>{in_con.close()})
 		} else {
 			in_con = vc.data

@@ -16,7 +16,6 @@ const open = (port, host, _resp_srv)=>{
 			stream.rst()
 		})
 		stream.on_msg((buf)=>{client.send(buf)})
-		stream.on_peer_end(()=>{})
 		stream.on_close(()=>{
 			client.close()
 		})
