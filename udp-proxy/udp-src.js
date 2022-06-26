@@ -17,7 +17,7 @@ const VCON_TIMEOUT = 30*1000
 const gen_vcon = (vcons, s, rinfo)=>{
 	var msg_cb_
 	var close_cb_
-	var timeout
+	var timeout = null
 	var alive = true
 	const in_con = {
 		on_msg: (msg_cb)=>{msg_cb_ = msg_cb},
@@ -32,7 +32,9 @@ const gen_vcon = (vcons, s, rinfo)=>{
 			if (!s)
 				return
 			s = null
+			alive = true
 			clearTimeout(timeout)
+			timeout = null
 			vcons.remove(rinfo)
 			if (!!close_cb_)
 				close_cb_()
