@@ -13,6 +13,7 @@ const open = (path, origin)=>{
 	var ws_cln = new WebSocketClient()//Flag.
 	var ws//Flag used connection.
 	var ws_chnl//Used for send. Most time, equal to ws.
+	var alive = true
 	var t2close//FIX ME. Wait for websocketclient's impl of timeout.
 	var msg_cb
 	var connected_cb
@@ -77,9 +78,13 @@ const open = (path, origin)=>{
 		setTimeout(start, 5000)
 	}
 	const restart_timeout = ()=>{
-		if (!!t2close)
+		if (!alive) {
+			on_timeout_close()
+		} else {
+			alive = false
 			clearTimeout(t2close)
-		t2close = setTimeout(on_timeout_close, 2 * 20 * 1000)//2 times of default ping interv
+			t2close = setTimeout(restart_timeout, 2 * 20 * 1000)//2 times of default ping interv
+		}
 	}
 
 	ws_cln.on('connectFailed', (err)=>{if (!!error_cb) error_cb(err); restart()})
@@ -90,8 +95,8 @@ const open = (path, origin)=>{
 		restart_timeout()
 		ws.on('close', ()=>{console.log('close.'); on_ws_close()})//WebSocketClient at most have one ws. So it is safe.
 		ws.on('error', (err)=>{console.log('error.'); if (!!error_cb) error_cb(err)})//Socket-error. It may emitted close soon.
-		ws.on('message', (msg)=>{restart_timeout(); on_ws_message(msg)})
-		ws.on('ping', ()=>{console.log('ping.'); restart_timeout()})
+		ws.on('message', (msg)=>{alive = true; on_ws_message(msg)})
+		ws.on('ping', ()=>{console.log('ping.'); alive = true})
 		if (!!connected_cb)
 			connected_cb()
 	})
