@@ -6,7 +6,7 @@ const open = (port, host, _resp_srv)=>{
 	var resp_srv = _resp_srv//Flag.
 	resp_srv.on_stream((stream)=>{
 		const client = dgram.createSocket('udp4')
-		client.connect(port, host)
+		client.bind()
 		client.on('message', (buf)=>{stream.send(buf)})
 		client.on('close', ()=>{
 			stream.rst()
@@ -15,7 +15,7 @@ const open = (port, host, _resp_srv)=>{
 			console.log(`udp client error: ${err}`)
 			stream.rst()
 		})
-		stream.on_msg((buf)=>{client.send(buf)})
+		stream.on_msg((buf)=>{client.send(buf, port, host)})
 		stream.on_close(()=>{
 			client.close()
 		})
