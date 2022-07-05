@@ -91,7 +91,7 @@ const open = (port, host, req_srv)=>{
 		in_con.inj_msg(msg)
 
 	})
-	console.log(`udp binding ${port}, ${host}`)
+	console.log(`udp src binding ${port} ${host}`)
 	srv.bind(port, host)
 	return {
 		close: close,
