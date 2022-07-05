@@ -3,16 +3,17 @@
 const dgram = require('dgram')
 
 const open = (port, host, resp_srv, dport, dst)=>{
-	var srv//flag
-	srv = dgram.createSocket('udp4')
+	var srv = dgram.createSocket('udp4')//Flag
 	const close = ()=>{
-		if (!!srv)
-			srv.close()
+		if (!srv)
+			return
+		srv_tmp = srv
 		srv = null
+		srv_tmp.close()
 	}
 	var stream
 	resp_srv.on_stream((in_stream)=>{
-		console.log(`udppair dst ${dport} ${dst} stream in`)
+		console.log(`udppair dst ${dport} ${dst} stream opened`)
 		stream = in_stream
 		stream.on_msg((buf)=>{
 			if (!!srv)
