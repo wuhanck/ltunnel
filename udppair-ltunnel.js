@@ -64,7 +64,7 @@ if (kwargs.site === 'cloud') {
 	console.log(kwargs)
 	const valid = (token)=>(token === kwargs.ws_token)
 	const req_srv = ReqPubOpen(kwargs.ws_port, kwargs.ws_ip, kwargs.MAX_STREAMS, valid)
-    	src_open(kwargs.binding_port, kwargs.binding_ip, req_srv, kwargs.proxyed_port, kwargs.proxyed_ip)
+	src_open(kwargs.binding_port, kwargs.binding_ip, req_srv, kwargs.proxyed_port, kwargs.proxyed_ip)
 	req_srv.start()
 } else {
 	console.log(kwargs)
