@@ -5,7 +5,7 @@ const Net = require('net')
 const open = (port, host, req_srv)=>{
 	var srv//Flag.
 	srv = Net.createServer({allowHalfOpen: true}, (in_con)=>{
-		var stream = req_srv.open_stream()
+		const stream = req_srv.open_stream()
 		if (!stream) {
 			in_con.destroy()
 			return
@@ -19,12 +19,14 @@ const open = (port, host, req_srv)=>{
 		stream.on_close(()=>{in_con.destroy()})
 	})
 	const close = ()=>{
-		if (!!srv)
-			srv.close()
+		if (!srv)
+			return
+		srv_tmp = srv
 		srv = null
+		srv_tmp.close()
 	}
 	srv.listen(port, host, ()=>{
-		console.log(`SRC:TCP:${port}:${host} listened.`)
+		console.log(`SRC:TCP:${port}:${host} listened`)
 	})
 	return {
 		close: close,
