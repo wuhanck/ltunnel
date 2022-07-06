@@ -15,6 +15,7 @@ const rinfo_compare = (ra, rb)=>{
 const VCON_TIMEOUT = 240*1000
 
 const gen_vcon = (vcons, s, rinfo)=>{
+	const s_chnl = s
 	var msg_cb
 	var close_cb
 	var timeout = null
@@ -23,10 +24,8 @@ const gen_vcon = (vcons, s, rinfo)=>{
 		on_msg: (cb)=>{msg_cb = cb},
 		on_close: (cb)=>{close_cb = cb},
 		write: (buf)=>{
-			if (!!s) {
-				alive = true
-				s.send(buf, rinfo.port, rinfo.address)
-			}
+			alive = true
+			s_chnl.send(buf, rinfo.port, rinfo.address)
 		},
 		close: ()=>{
 			if (!s)
@@ -40,10 +39,8 @@ const gen_vcon = (vcons, s, rinfo)=>{
 				close_cb()
 		},
 		inj_msg: (msg)=>{
-			if (!!msg_cb) {
-				alive = true
-				msg_cb(msg)
-			}
+			alive = true
+			msg_cb(msg)
 		},
 	}
 	const timeout_cb = ()=>{
@@ -62,13 +59,14 @@ const gen_vcon = (vcons, s, rinfo)=>{
 }
 
 const open = (port, host, req_srv)=>{
-	var srv//Flag.
+	var srv = dgram.createSocket('udp4')//FLag
 	const vcons = new avl(rinfo_compare, true)
-	srv = dgram.createSocket('udp4')
 	const close = ()=>{
-		if (!!srv)
-			srv.close()
+		if (!srv)
+			return
+		srv_tmp = srv
 		srv = null
+		srv_tmp.close()
 	}
 	srv.on('message', (msg, rinfo)=>{
 		const vc = vcons.find(rinfo)
