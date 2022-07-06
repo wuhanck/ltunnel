@@ -14,14 +14,12 @@ const rinfo_compare = (ra, rb)=>{
 
 const VCON_TIMEOUT = 240*1000
 
-const gen_vcon = (vcons, s, rinfo)=>{
+const gen_vcon = (vcons, s, rinfo, msg_cb)=>{
 	const s_chnl = s
-	var msg_cb
 	var close_cb
 	var timeout = null
 	var alive = true
 	const in_con = {
-		on_msg: (cb)=>{msg_cb = cb},
 		on_close: (cb)=>{close_cb = cb},
 		write: (buf)=>{
 			alive = true
@@ -72,15 +70,14 @@ const open = (port, host, req_srv)=>{
 		const vc = vcons.find(rinfo)
 		var in_con
 		if (vc === null) {
-			in_con = gen_vcon(vcons, srv, rinfo)
 			const stream = req_srv.open_stream()
 			if (!stream) {
 				console.log('open-stream failed')
-				in_con.close()
 				return
 			}
-			in_con.on_msg((buf)=>{stream.send(buf)})
+			in_con = gen_vcon(vcons, srv, rinfo, (buf)=>{stream.send(buf)})
 			in_con.on_close(()=>{stream.rst()})
+
 			stream.on_msg((buf)=>{in_con.write(buf)})
 			stream.on_close(()=>{in_con.close()})
 		} else {
