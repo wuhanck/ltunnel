@@ -4,6 +4,7 @@ const dgram = require('dgram')
 
 const open = (port, host, resp_srv, dport, dst)=>{
 	var srv = dgram.createSocket('udp4')//Flag
+	const srv_chnl = srv
 	const close = ()=>{
 		if (!srv)
 			return
@@ -11,18 +12,13 @@ const open = (port, host, resp_srv, dport, dst)=>{
 		srv = null
 		srv_tmp.close()
 	}
-	var stream
-	resp_srv.on_stream((in_stream)=>{
+	resp_srv.on_stream((stream)=>{
 		console.log(`udppair dst ${dport} ${dst} stream opened`)
-		stream = in_stream
-		stream.on_msg((buf)=>{
-			if (!!srv)
-				srv.send(buf, dport, dst)
-		})
-	})
-	srv.on('message', (msg)=>{
-		if (!!stream)
-			stream.write(msg)
+
+		stream.on_msg((buf)=>{srv_chnl.send(buf, dport, dst)})
+
+		srv_chnl.removeAllListeners()
+		srv_chnl.on('message', (msg)=>{stream.send(msg)})
 	})
 	console.log(`udppair host udp binding ${port} ${host}`)
 	srv.bind(port, host)
@@ -47,7 +43,7 @@ const resp_path = `ws://${resp_host}/`
 const resp_prv = RespPrvOpen(resp_path)
 open(src_port, src_host, resp_prv, dport, dst)
 resp_prv.start()
-resp_prv.on_connected(()=>{console.log(`udppair ${resp_path} connected.`)})
-resp_prv.on_disconnected(()=>{console.log(`udppair ${resp_path} disconnected.`)})
+resp_prv.on_connected(()=>{console.log(`udppair ${resp_path} connected`)})
+resp_prv.on_disconnected(()=>{console.log(`udppair ${resp_path} disconnected`)})
 
 }

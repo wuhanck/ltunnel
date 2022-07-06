@@ -4,6 +4,7 @@ const dgram = require('dgram')
 
 const open = (port, host, req_srv, dport, dst)=>{
 	var srv = dgram.createSocket('udp4')//Flag
+	const srv_chnl = srv
 	const close = ()=>{
 		if (!srv)
 			return
@@ -11,22 +12,17 @@ const open = (port, host, req_srv, dport, dst)=>{
 		srv = null
 		srv_tmp.close()
 	}
-	var stream
 	req_srv.on_connected(()=>{
 		console.log(`udppair dst ${dport} ${dst} stream opened`)
-		stream = req_srv.open_stream()
-		stream.on_msg((buf)=>{
-			if (!!src)
-				src.send(buf, dport, dst)
-		})
+
+		const stream = req_srv.open_stream()
+		stream.on_msg((buf)=>{srv_chnl.send(buf, dport, dst)})
+
+		srv_chnl.removeAllListeners()
+		srv_chnl.on('message', (msg)=>{stream.send(msg)})
 	})
 	req_srv.on_disconnected(()=>{
 		console.log(`udppair dst ${dport} ${dst} stream closed`)
-		stream = null
-	})
-	srv.on('message', (msg)=>{
-		if (!!stream)
-			stream.write(msg)
 	})
 	console.log(`udppair host udp binding ${port} ${host}`)
 	srv.bind(port, host)
