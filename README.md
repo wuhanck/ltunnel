@@ -11,9 +11,9 @@ node ltunnel-s 10086 xyz
 
 NOTE: USE 1xxxx port
 
-//NATed machine forward local-port to public local-host default to localhost
+//NATed machine forward local-port to public
 
-node ltunnel-c server-ip server-port local-port token local-host
+node ltunnel-c server-ip server-port local-port token local-host(default to 127.0.0.1)
 
 
 //for example forward 22 to public    
