@@ -5,7 +5,14 @@ const Net = require('net')
 const open = (port, host, resp_srv)=>{
 	resp_srv.on_stream((stream)=>{
 		const client = new Net.Socket({allowHalfOpen: true,})
-		client.connect(port, host)
+		try {
+			client.connect(port, host)
+		} catch (e) {
+			console.log(e)
+			stream.rst()
+			client.destroy()
+			return
+		}
 		client.on('data', (buf)=>{stream.send(buf)})
 		client.on('end', ()=>{stream.end()})
 		client.on('close', ()=>{stream.rst()})
