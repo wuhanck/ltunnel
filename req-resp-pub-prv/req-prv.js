@@ -1,10 +1,10 @@
 'use strict'
 
 const ReqSvcOpen = require('../req-resp-svc/req-svc.js').open
-const WsSrvChnlOpen = require('../ws-chnl/srv-chnl.js').open
+const WsClnChnlOpen = require('../ws-chnl/cln-chnl.js').open
 
-const open = (port, host, max_streams, valid)=>{
-	var chnl = WsSrvChnlOpen(port, host, valid)
+const open = (path, origin, max_streams)=>{
+	var chnl = WsClnChnlOpen(path, origin)
 	return ReqSvcOpen(chnl, max_streams)
 }
 
