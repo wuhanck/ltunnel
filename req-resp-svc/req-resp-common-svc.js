@@ -11,18 +11,17 @@ const RespOpen = require('../req-resp-proto/resp.js').open
 //chnl.on_msg(cb)//msg comming, will call cb.
 
 var open = (chnl, is_req, max_streams)=>{
-	var req_resp//Flag.
 	if (is_req)
-		req_resp = ReqOpen(chnl, max_streams)
+		var req_resp = ReqOpen(chnl, max_streams)
 	else
-		req_resp = RespOpen(chnl)
+		var req_resp = RespOpen(chnl)
 	var connected_cbs = []//Repeated connect callback.
 	var disconnected_cbs = []//Repeated disconnect callback.
 
 	const close = ()=>{
 		if (!req_resp)
 			return
-		var req_resp_tmp = req_resp
+		const req_resp_tmp = req_resp
 		req_resp = null
 
 		req_resp_tmp.close()

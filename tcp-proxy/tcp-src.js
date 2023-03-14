@@ -6,8 +6,7 @@ const HIGH_WATER = 8*1024*1024
 const LOW_WATER = 2*1024*1024
 
 const open = (port, host, req_srv)=>{
-	var srv//Flag.
-	srv = Net.createServer({allowHalfOpen: true}, (in_con)=>{
+	var srv = Net.createServer({allowHalfOpen: true}, (in_con)=>{
 		const stream = req_srv.open_stream()
 		if (!stream) {
 			in_con.destroy()
@@ -38,8 +37,9 @@ const open = (port, host, req_srv)=>{
 	const close = ()=>{
 		if (!srv)
 			return
-		srv_tmp = srv
+		const srv_tmp = srv
 		srv = null
+
 		srv_tmp.close()
 	}
 	srv.listen(port, host, ()=>{
