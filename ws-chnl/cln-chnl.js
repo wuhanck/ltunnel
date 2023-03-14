@@ -84,7 +84,7 @@ const open = (path, origin)=>{
 	}
 
 	return {
-		send: (buf, cb)=>{if (ws_chnl) {alive = true; ws_chnl.send(buf, cb)}},
+		send: (buf, cb)=>{if (ws_chnl) ws_chnl.send(buf, cb)},
 		start: start,
 		on_msg: on_msg,
 		on_connected: on_connected,

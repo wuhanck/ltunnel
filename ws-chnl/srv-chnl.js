@@ -79,7 +79,7 @@ const open = (port, host, valid)=>{
 			restart_timeout()
 			ws.on('close', (code, reason)=>{close_ws(`ws-close ${code} ${reason}`)})
 			ws.on('error', (err)=>{if (!!error_cb) error_cb(err); close_ws(`ws-error ${err}`)})
-			ws.on('message', (msg, is_bin)=>{alive = true; on_ws_message(msg, is_bin)})
+			ws.on('message', on_ws_message)
 			if (!!connected_cb)
 				connected_cb()
 		})
