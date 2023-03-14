@@ -50,7 +50,7 @@ const open = (path, origin)=>{
 		} else {
 			alive = false
 			clearTimeout(t2close)
-			t2close = setTimeout(restart_timeout, 2*20*1000)//2 times of default ping
+			t2close = setTimeout(restart_timeout, 3*20*1000)//3 times of default ping
 		}
 	}
 
@@ -75,12 +75,12 @@ const open = (path, origin)=>{
 		ws.on('error', (err)=>{if (!!error_cb) error_cb(err); close_and_restart(`ws-error ${err}`)})
 		ws.on('open', ()=>{
 			ws_chnl = ws
-			restart_timeout()
 			ws.on('message', (msg, is_bin)=>{alive = true; on_ws_message(msg, is_bin)})
 			ws.on('ping', ()=>{console.log('ping.'); alive = true})
 			if (!!connected_cb)
 				connected_cb()
 		})
+		restart_timeout()
 	}
 
 	return {
