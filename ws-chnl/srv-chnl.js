@@ -20,7 +20,7 @@ const open = (port, host, valid)=>{
 	const close = ()=>{
 		if (!ws_srv)
 			return
-		var ws_srv_tmp = ws_srv
+		const ws_srv_tmp = ws_srv
 		ws_srv = null
 
 		close_ws('ws-srv-close')
@@ -31,7 +31,7 @@ const open = (port, host, valid)=>{
 		console.log(err)
 		if (!ws)
 			return
-		var ws_tmp = ws
+		const ws_tmp = ws
 		ws = null
 
 		alive = true
@@ -57,7 +57,7 @@ const open = (port, host, valid)=>{
 	}
 
 	const on_ws_message = (msg, is_bin)=>{
-		var buf = is_bin ? msg : null
+		const buf = is_bin ? msg : null
 		if (!buf)//something wrong
 			close_ws('wrong-format-msg')
 		else if (!!msg_cb)

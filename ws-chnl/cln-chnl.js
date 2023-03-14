@@ -20,7 +20,7 @@ const open = (path, origin)=>{
 	const close = ()=>{
 		if (!ws)
 			return
-		var ws_tmp = ws
+		const ws_tmp = ws
 		ws = null
 		ws_chnl = null
 
@@ -55,7 +55,7 @@ const open = (path, origin)=>{
 	}
 
 	const on_ws_message = (msg, is_bin)=>{
-		var buf = is_bin ? msg : null
+		const buf = is_bin ? msg : null
 		if (!buf)//something wrong
 			close_and_restart('wrong-format-msg')
 		else if (!!msg_cb)
