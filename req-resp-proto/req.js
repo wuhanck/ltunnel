@@ -5,13 +5,12 @@ const ReqParser = require('./msg.js').req_parser
 const RespParser = require('./msg.js').resp_parser
 const BitSet = require('fast-bitset')
 
-const open = (_chnl, max_streams)=>{
-	var chnl = _chnl//Flag.
+const open = (chnl, max_streams)=>{
 	Assert(!!chnl)
 	Assert(max_streams > 0)
 
-	var streams = []//Save inner interface of stream.
-	var streams_bitmap = new BitSet(max_streams)
+	const streams = []//Save inner interface of stream.
+	const streams_bitmap = new BitSet(max_streams)
 
 	const close = ()=>{
 		if (!chnl)
@@ -25,22 +24,22 @@ const open = (_chnl, max_streams)=>{
 		streams.forEach((stream)=>{stream.close()})
 	}
 	const process_resp = (resp)=>{//RESP had been decode with check. So it is valid or undefined.
-		var id = resp.respStreamId;
+		const id = resp.respStreamId;
 		if (id === undefined) {
 			console.log('Receive resp missing id.')
 			return
 		}
-		var stream = streams[id]
+		const stream = streams[id]
 		if (stream === undefined) {
 			console.log(`Receive resp unknown id: ${id}.`)
 			return
 		}
 
-		var content = resp.respContent
+		const content = resp.respContent
 		if (content !== undefined)//Always process content regardless type.
 			stream.msg(content)
 
-		var type = resp.respType
+		const type = resp.respType
 		if (type === RespParser.RST_TYPE)
 			stream.close()
 		else if (type === RespParser.END_TYPE)
@@ -49,7 +48,7 @@ const open = (_chnl, max_streams)=>{
 	const feed_msg = (msg)=>{
 		if (!chnl)
 			return
-		var resp = RespParser.decode(msg)
+		const resp = RespParser.decode(msg)
 		if (!!resp)//FIX ME. Maybe we need do sth.
 			process_resp(resp)
 	}
@@ -57,7 +56,7 @@ const open = (_chnl, max_streams)=>{
 		if (!chnl)
 			return null
 
-		var stream_chnl = chnl
+		const stream_chnl = chnl
 		var close_cb
 		var msg_cb
 		var peer_end_cb
@@ -68,7 +67,7 @@ const open = (_chnl, max_streams)=>{
 		const close = ()=>{
 			if (id < 0)
 				return
-			var id_tmp = id
+			const id_tmp = id
 			id = -1
 
 			streams_bitmap.unset(id_tmp)
