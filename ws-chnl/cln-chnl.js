@@ -84,7 +84,7 @@ const open = (path, origin)=>{
 	}
 
 	return {
-		send: (buf)=>{if (ws_chnl) {alive = true; ws_chnl.send(buf)}},
+		send: (buf, cb)=>{if (ws_chnl) {alive = true; ws_chnl.send(buf, cb)}},
 		start: start,
 		on_msg: on_msg,
 		on_connected: on_connected,
@@ -92,6 +92,9 @@ const open = (path, origin)=>{
 		on_error: on_error,
 		connected: ()=>{return !!ws_chnl},
 		close: close,
+		buffered: ()=>{if (ws_chnl) return ws_chnl.bufferedAmount},
+		pause: ()=>{if (ws_chnl) ws_chnl.pause()},
+		resume: ()=>{if (ws_chnl) ws_chnl.resume()},
 	}
 }
 

@@ -86,7 +86,7 @@ const open = (port, host, valid)=>{
 	}
 
 	return {
-		send: (buf)=>{if (ws) {alive = true; ws.send(buf)}},
+		send: (buf, cb)=>{if (ws) {alive = true; ws.send(buf, cb)}},
 		start: start,
 		on_msg: on_msg,
 		on_connected: on_connected,
@@ -94,6 +94,9 @@ const open = (port, host, valid)=>{
 		on_error: on_error,
 		connected: ()=>{return !!ws},
 		close: close
+		buffered: ()=>{if (ws) return ws.bufferedAmount}
+		pause: ()=>{if (ws) ws.pause()},
+		resume: ()=>{if (ws) ws.resume()},
 	}
 }
 

@@ -2,6 +2,9 @@
 
 const Net = require('net')
 
+const HIGH_WATER = 8*1024*1024
+const LOW_WATER = 2*1024*1024
+
 const open = (port, host, resp_srv)=>{
 	resp_srv.on_stream((stream)=>{
 		const client = new Net.Socket({allowHalfOpen: true,})
@@ -13,7 +16,14 @@ const open = (port, host, resp_srv)=>{
 			client.destroy()
 			return
 		}
-		client.on('data', (buf)=>{stream.send(buf)})
+		client.on('data', (buf)=>{
+			if (HIGH_WATER < stream.buffered())
+				client.pause()
+			stream.send(buf, ()=>{
+				if (stream.buffered() < LOW_WATER)
+					client.resume()
+			})
+		})
 		client.on('end', ()=>{stream.end()})
 		client.on('close', ()=>{stream.rst()})
 		client.on('error', (err)=>{stream.rst()})

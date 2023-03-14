@@ -2,6 +2,9 @@
 
 const Net = require('net')
 
+const HIGH_WATER = 8*1024*1024
+const LOW_WATER = 2*1024*1024
+
 const open = (port, host, req_srv)=>{
 	var srv//Flag.
 	srv = Net.createServer({allowHalfOpen: true}, (in_con)=>{
@@ -10,7 +13,14 @@ const open = (port, host, req_srv)=>{
 			in_con.destroy()
 			return
 		}
-		in_con.on('data', (buf)=>{stream.send(buf)})
+		in_con.on('data', (buf)=>{
+			if (HIGH_WATER < stream.buffered())
+				in_con.pause()
+			stream.send(buf, ()=>{
+				if (stream.buffered() < LOW_WATER)
+					in_con.resume()
+			})
+		})
 		in_con.on('end', ()=>{stream.end()})
 		in_con.on('close', ()=>{stream.rst()})
 		in_con.on('error', ()=>{stream.rst()})

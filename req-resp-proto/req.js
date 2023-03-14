@@ -81,7 +81,7 @@ const open = (_chnl, max_streams)=>{
 		const on_peer_end = (cb)=>{peer_end_cb = cb}
 		const msg = (buf)=>{if (!!msg_cb) msg_cb(buf)}
 		const peer_end = ()=>{if (!!peer_end_cb) peer_end_cb()}
-		const send = (buf)=>{if (id < 0) return; stream_chnl.send(ReqParser.encode(id, buf))}
+		const send = (buf, cb)=>{if (id < 0) return; stream_chnl.send(ReqParser.encode(id, buf), cb)}
 		const end = (buf)=>{if (id < 0) return; stream_chnl.send(ReqParser.encode_end(id, buf))}
 		const rst = (buf)=>{if (id < 0) return; stream_chnl.send(ReqParser.encode_rst(id, buf))}
 
@@ -99,6 +99,9 @@ const open = (_chnl, max_streams)=>{
 			on_close: on_close,
 			on_msg: on_msg,
 			on_peer_end: on_peer_end,
+			buffered: stream_chnl.buffered,
+			pause: stream_chnl.pause,
+			resume: stream_chnl.resume,
 		}
 	}
 	return {

@@ -96,7 +96,7 @@ var open = (_chnl)=>{
 		const on_peer_end = (cb)=>{peer_end_cb = cb}
 		const msg = (buf)=>{if (!!msg_cb) msg_cb(buf)}
 		const peer_end = ()=>{req_end = true; if (!!peer_end_cb) peer_end_cb(); check_end()}
-		const send = (buf)=>{if (id < 0) return; stream_chnl.send(RespParser.encode(id, buf))}//If closed, usage-error, exception.
+		const send = (buf, cb)=>{if (id < 0) return; stream_chnl.send(RespParser.encode(id, buf), cb)}//If closed, usage-error, exception.
 		const end = (buf)=>{
 			if (id < 0)
 				return
@@ -123,6 +123,9 @@ var open = (_chnl)=>{
 			on_close: on_close,
 			on_msg: on_msg,
 			on_peer_end: on_peer_end,
+			buffered: stream_chnl.buffered,
+			pause: stream_chnl.pause,
+			resume: stream_chnl.resume,
 		}
 	}
 	const on_stream = (cb)=>{stream_cb = cb}
