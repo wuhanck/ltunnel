@@ -24,7 +24,14 @@ const open = (port, host, req_srv)=>{
 		in_con.on('end', ()=>{stream.end()})
 		in_con.on('close', ()=>{stream.rst()})
 		in_con.on('error', ()=>{stream.rst()})
-		stream.on_msg((buf)=>{in_con.write(buf)})
+		stream.on_msg((buf)=>{
+			if (HIGH_WATER < in_con.writableLength)
+				stream.pause()
+			in_con.write(buf, ()=>{
+				if (in_con.writableLength < LOW_WATER)
+					stream.resume()
+			})
+		})
 		stream.on_peer_end(()=>{in_con.end()})
 		stream.on_close(()=>{in_con.destroy()})
 	})

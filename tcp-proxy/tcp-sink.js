@@ -27,7 +27,14 @@ const open = (port, host, resp_srv)=>{
 		client.on('end', ()=>{stream.end()})
 		client.on('close', ()=>{stream.rst()})
 		client.on('error', (err)=>{stream.rst()})
-		stream.on_msg((buf)=>{client.write(buf)})
+		stream.on_msg((buf)=>{
+			if (HIGH_WATER < client.writableLength)
+				stream.pause()
+			client.write(buf, ()=>{
+				if (client.writableLength < LOW_WATER)
+					stream.resume()
+			})}
+		)
 		stream.on_peer_end(()=>{client.end()})
 		stream.on_close(()=>{client.destroy()})
 	})
