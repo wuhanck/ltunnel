@@ -93,8 +93,8 @@ const open = (port, host, valid)=>{
 		on_disconnected: on_disconnected,
 		on_error: on_error,
 		connected: ()=>{return !!ws},
-		close: close
-		buffered: ()=>{if (ws) return ws.bufferedAmount}
+		close: close,
+		buffered: ()=>{if (ws) return ws.bufferedAmount},
 		pause: ()=>{if (ws) ws.pause()},
 		resume: ()=>{if (ws) ws.resume()},
 	}
