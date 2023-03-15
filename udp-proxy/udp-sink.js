@@ -2,12 +2,18 @@
 
 const dgram = require('dgram')
 
+const HIGH_WATER = 8*1024*1024
+
 const open = (port, host, resp_srv)=>{
 	resp_srv.on_stream((stream)=>{
 		console.log(`udp sink ${port} ${host} stream opened`)
 		const client = dgram.createSocket('udp4')
 		client.bind()
-		client.on('message', (buf)=>{stream.send(buf)})
+		client.on('message', (buf)=>{
+			if (HIGH_WATER < stream.buffered())
+				return
+			stream.send(buf)
+		})
 		client.on('close', ()=>{
 			stream.rst()
 		})

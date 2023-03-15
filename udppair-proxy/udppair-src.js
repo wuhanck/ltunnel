@@ -2,24 +2,30 @@
 
 const dgram = require('dgram')
 
+const HIGH_WATER = 8*1024*1024
+
 const open = (port, host, req_srv, dport, dst)=>{
-	var srv = dgram.createSocket('udp4')//Flag
-	const srv_chnl = srv
+	var srv = dgram.createSocket('udp4')
 	const close = ()=>{
 		if (!srv)
 			return
-		srv_tmp = srv
+		const srv_tmp = srv
 		srv = null
+
 		srv_tmp.close()
 	}
 	req_srv.on_connected(()=>{
 		console.log(`udppair dst ${dport} ${dst} stream opened`)
 
 		const stream = req_srv.open_stream()
-		stream.on_msg((buf)=>{srv_chnl.send(buf, dport, dst)})
+		stream.on_msg((buf)=>{if (srv) srv.send(buf, dport, dst)})
 
-		srv_chnl.removeAllListeners()
-		srv_chnl.on('message', (msg)=>{stream.send(msg)})
+		srv.removeAllListeners()
+		srv.on('message', (msg)=>{
+			if (HIGH_WATER < stream.buffered())
+				return
+			stream.send(msg)
+		})
 	})
 	req_srv.on_disconnected(()=>{
 		console.log(`udppair dst ${dport} ${dst} stream closed`)

@@ -13,25 +13,27 @@ const rinfo_compare = (ra, rb)=>{
 }
 
 const VCON_TIMEOUT = 240*1000
+const HIGH_WATER = 8*1024*1024
 
 const gen_vcon = (vcons, s, rinfo, msg_cb)=>{
-	const s_chnl = s
 	var close_cb
-	var timeout = null
 	var alive = true
+	var timeout = null
 	const in_con = {
 		on_close: (cb)=>{close_cb = cb},
 		write: (buf)=>{
 			alive = true
-			s_chnl.send(buf, rinfo.port, rinfo.address)
+			if (s) s.send(buf, rinfo.port, rinfo.address)
 		},
 		close: ()=>{
 			if (!s)
 				return
 			s = null
+
 			alive = true
 			clearTimeout(timeout)
 			timeout = null
+
 			vcons.remove(rinfo)
 			if (!!close_cb)
 				close_cb()
@@ -57,13 +59,14 @@ const gen_vcon = (vcons, s, rinfo, msg_cb)=>{
 }
 
 const open = (port, host, req_srv)=>{
-	var srv = dgram.createSocket('udp4')//FLag
+	var srv = dgram.createSocket('udp4')
 	const vcons = new avl(rinfo_compare, true)
 	const close = ()=>{
 		if (!srv)
 			return
-		srv_tmp = srv
+		const srv_tmp = srv
 		srv = null
+
 		srv_tmp.close()
 	}
 	srv.on('message', (msg, rinfo)=>{
@@ -75,7 +78,11 @@ const open = (port, host, req_srv)=>{
 				console.log('open-stream failed')
 				return
 			}
-			in_con = gen_vcon(vcons, srv, rinfo, (buf)=>{stream.send(buf)})
+			in_con = gen_vcon(vcons, srv, rinfo, (buf)=>{
+				if (HIGH_WATER < stream.buffered())
+					return
+				stream.send(buf)
+			})
 			in_con.on_close(()=>{stream.rst()})
 
 			stream.on_msg((buf)=>{in_con.write(buf)})
