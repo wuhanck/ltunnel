@@ -2,8 +2,8 @@
 
 const Net = require('net')
 
-const HIGH_WATER = 8*1024*1024
-const LOW_WATER = 2*1024*1024
+const HIGH_WATER = 2*1024*1024
+const LOW_WATER = 512*1024
 
 const open = (port, host, req_srv)=>{
 	const p_set = new Set()
