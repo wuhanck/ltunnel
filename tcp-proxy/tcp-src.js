@@ -6,6 +6,7 @@ const HIGH_WATER = 8*1024*1024
 const LOW_WATER = 2*1024*1024
 
 const open = (port, host, req_srv)=>{
+	const p_set = new Set()
 	var srv = Net.createServer({allowHalfOpen: true}, (in_con)=>{
 		const stream = req_srv.open_stream()
 		if (!stream) {
@@ -13,11 +14,16 @@ const open = (port, host, req_srv)=>{
 			return
 		}
 		in_con.on('data', (buf)=>{
-			if (HIGH_WATER < stream.buffered())
+			if (HIGH_WATER < stream.buffered()) {
 				in_con.pause()
+				p_set.add(in_con)
+			}
 			stream.send(buf, ()=>{
-				if (stream.buffered() < LOW_WATER)
-					in_con.resume()
+				if (stream.buffered() < LOW_WATER) {
+					for (const ele of p_set)
+						ele.resume()
+					p_set.clear()
+				}
 			})
 		})
 		in_con.on('end', ()=>{stream.end()})
