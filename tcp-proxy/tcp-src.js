@@ -40,9 +40,9 @@ const open = (port, host, req_srv)=>{
 		stream.on_close(()=>{in_con.destroy()})
 		stream.on_jammed((op)=>{
 			if (op === 1)
-				client.pause()
+				in_con.pause()
 			else if (op === 0)
-				client.resume()
+				in_con.resume()
 		})
 	})
 	const close = ()=>{
