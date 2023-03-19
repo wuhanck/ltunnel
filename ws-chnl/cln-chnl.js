@@ -34,7 +34,7 @@ const open = (path, origin)=>{
 		ws_tmp.removeEventListener('open')
 		ws_tmp.removeEventListener('close')
 		ws_tmp.removeEventListener('error')
-		ws_tmp.removeEventListener('ping')
+		ws_tmp.removeEventListener('pong')
 		ws_tmp.removeEventListener('message')
 		ws_tmp.close()
 	}
@@ -50,7 +50,7 @@ const open = (path, origin)=>{
 		} else {
 			alive = false
 			clearTimeout(t2close)
-			t2close = setTimeout(restart_timeout, 3*20*1000)//3 times of default ping
+			t2close = setTimeout(restart_timeout, 3*20*1000)//3 times of default pong
 		}
 	}
 
@@ -76,7 +76,7 @@ const open = (path, origin)=>{
 		ws.on('open', ()=>{
 			ws_chnl = ws
 			ws.on('message', (msg, is_bin)=>{alive = true; on_ws_message(msg, is_bin)})
-			ws.on('ping', ()=>{console.log('ping.'); alive = true})
+			ws.on('pong', ()=>{console.log('pong.'); alive = true})
 			if (!!connected_cb)
 				connected_cb()
 		})

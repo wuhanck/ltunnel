@@ -10,7 +10,7 @@ const open = (port, host, valid)=>{
 	var ws = null//used for send
 
 	var alive = true
-	var t2ping = null
+	var t2pong = null
 
 	var msg_cb
 	var connected_cb
@@ -35,8 +35,8 @@ const open = (port, host, valid)=>{
 		ws = null
 
 		alive = true
-		clearTimeout(t2ping)
-		t2ping = null
+		clearTimeout(t2pong)
+		t2pong = null
 
 		if (!!disconnected_cb)
 			disconnected_cb()
@@ -49,11 +49,11 @@ const open = (port, host, valid)=>{
 
 	const restart_timeout = ()=>{
 		if (!alive)
-			ws.ping('x')
+			ws.pong()
 
 		alive = false
-		clearTimeout(t2ping)
-		t2ping = setTimeout(restart_timeout, 1*20*1000)
+		clearTimeout(t2pong)
+		t2pong = setTimeout(restart_timeout, 1*20*1000)
 	}
 
 	const on_ws_message = (msg, is_bin)=>{
