@@ -45,7 +45,7 @@ const open = (port, host, resp_srv)=>{
 		stream.on_jammed((op)=>{
 			if (op === 1)
 				client.pause()
-			else (op === 0)
+			else if (op === 0)
 				client.resume()
 		})
 	})

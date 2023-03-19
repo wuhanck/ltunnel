@@ -8,7 +8,7 @@ const id2buf = (op, id)=>{
 }
 const buf2id = (buf)=>{
 	try {
-		var op = buf.readInt32Le()
+		var op = buf.readInt32LE()
 		var id = buf.readInt32LE(4)
 	} catch (e) {
 	}
