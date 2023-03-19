@@ -3,6 +3,8 @@
 const Assert = require('assert')
 const {WebSocket} = require('ws')
 
+const {id2buf, buf2id} = require('./idbuf')
+
 const open = (path, origin)=>{
 	Assert(!!path)
 
@@ -13,6 +15,7 @@ const open = (path, origin)=>{
 	var t2close = null
 
 	var msg_cb
+	var jammed_cb
 	var connected_cb
 	var disconnected_cb
 	var error_cb
@@ -63,6 +66,7 @@ const open = (path, origin)=>{
 	}
 
 	const on_msg = (cb)=>{msg_cb = cb}
+	const on_jammed = (cb)=>{jammed_cb = cb}
 	const on_connected = (cb)=>{connected_cb = cb}
 	const on_disconnected = (cb)=>{disconnected_cb = cb}
 	const on_error = (cb)=>{error_cb = cb}
@@ -76,7 +80,12 @@ const open = (path, origin)=>{
 		ws.on('open', ()=>{
 			ws_chnl = ws
 			ws.on('message', (msg, is_bin)=>{alive = true; on_ws_message(msg, is_bin)})
-			ws.on('pong', ()=>{console.log('pong.'); alive = true})
+			ws.on('pong', (buf)=>{
+				alive = true
+				const [op, id] = buf2id(buf)
+				if ((id !== undefined) && (!!jammed_cb))
+					jammed_cb(op, id)
+			})
 			if (!!connected_cb)
 				connected_cb()
 		})
@@ -85,16 +94,16 @@ const open = (path, origin)=>{
 
 	return {
 		send: (buf, cb)=>{if (ws_chnl) ws_chnl.send(buf, cb)},
+		jammed: (op, id)=>{if (ws_chnl) ws_chnl.pong(id2buf(op, id))},
 		start: start,
 		on_msg: on_msg,
+		on_jammed: on_jammed,
 		on_connected: on_connected,
 		on_disconnected: on_disconnected,
 		on_error: on_error,
 		connected: ()=>{return !!ws_chnl},
 		close: close,
 		buffered: ()=>{if (ws_chnl) return ws_chnl.bufferedAmount},
-		pause: ()=>{if (ws_chnl) ws_chnl.pause()},
-		resume: ()=>{if (ws_chnl) ws_chnl.resume()},
 	}
 }
 

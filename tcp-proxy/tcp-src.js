@@ -2,11 +2,12 @@
 
 const Net = require('net')
 
-const HIGH_WATER = 256*1024
-const LOW_WATER = 64*1024
+const STREAM_HIGH_WATER = 256*1024
+
+const CLIENT_HIGH_WATER = 64*1024
+const CLIENT_LOW_WATER = 16*1024
 
 const open = (port, host, req_srv)=>{
-	const p_set = new Set()
 	var srv = Net.createServer({allowHalfOpen: true}, (in_con)=>{
 		const stream = req_srv.open_stream()
 		if (!stream) {
@@ -14,31 +15,35 @@ const open = (port, host, req_srv)=>{
 			return
 		}
 		in_con.on('data', (buf)=>{
-			if (HIGH_WATER < stream.buffered()) {
+			const do_pause = (STREAM_HIGH_WATER < stream.buffered())
+			if (do_pause)
 				in_con.pause()
-				p_set.add(in_con)
-			}
+
 			stream.send(buf, ()=>{
-				if (stream.buffered() < LOW_WATER) {
-					for (const ele of p_set)
-						ele.resume()
-					p_set.clear()
-				}
+				if (do_pause)
+					in_con.resume()
 			})
 		})
 		in_con.on('end', ()=>{stream.end()})
 		in_con.on('close', ()=>{stream.rst()})
 		in_con.on('error', ()=>{stream.rst()})
 		stream.on_msg((buf)=>{
-			if (HIGH_WATER < in_con.writableLength)
-				stream.pause()
+			if (CLIENT_HIGH_WATER < in_con.writableLength)
+				stream.jammed(1)
+
 			in_con.write(buf, ()=>{
-				if (in_con.writableLength < LOW_WATER)
-					stream.resume()
+				if (in_con.writableLength < CLIENT_LOW_WATER)
+					stream.jammed(0)
 			})
 		})
 		stream.on_peer_end(()=>{in_con.end()})
 		stream.on_close(()=>{in_con.destroy()})
+		stream.on_jammed((op)=>{
+			if (op === 1)
+				client.pause()
+			else if (op === 0)
+				client.resume()
+		})
 	})
 	const close = ()=>{
 		if (!srv)

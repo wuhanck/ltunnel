@@ -43,6 +43,10 @@ var open = (chnl, is_req, max_streams)=>{
 		if (!!req_resp)
 			req_resp.feed_msg(msg)
 	})
+	chnl.on_jammed((op, id)={
+		if (!!req_resp)
+			req_resp.feed_jammed(op, id)
+	})
 	chnl.on_connected(()=>{connected_cbs.forEach((cb)=>{cb()})})
 	chnl.on_disconnected(()=>{
 		if (!!req_resp)

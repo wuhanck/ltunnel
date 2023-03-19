@@ -3,6 +3,8 @@
 const Assert = require('assert')
 const {WebSocketServer} = require('ws')
 
+const {id2buf, buf2id} = require('./idbuf')
+
 const open = (port, host, valid)=>{
 	Assert(!!port)
 
@@ -13,6 +15,7 @@ const open = (port, host, valid)=>{
 	var t2pong = null
 
 	var msg_cb
+	var jammed_cb
 	var connected_cb
 	var disconnected_cb
 	var error_cb
@@ -44,6 +47,7 @@ const open = (port, host, valid)=>{
 		ws_tmp.removeEventListener('close')
 		ws_tmp.removeEventListener('error')
 		ws_tmp.removeEventListener('message')
+		ws_tmp.removeEventListener('pong')
 		ws_tmp.close()
 	}
 
@@ -65,6 +69,7 @@ const open = (port, host, valid)=>{
 	}
 
 	const on_msg = (cb)=>{msg_cb = cb}
+	const on_jammed = (cb)=>{jammed_cb = cb}
 	const on_connected = (cb)=>{connected_cb = cb}
 	const on_disconnected = (cb)=>{disconnected_cb = cb}
 	const on_error = (cb)=>{error_cb = cb}
@@ -80,6 +85,11 @@ const open = (port, host, valid)=>{
 			ws.on('close', (code, reason)=>{close_ws(`ws-close ${code} ${reason}`)})
 			ws.on('error', (err)=>{if (!!error_cb) error_cb(err); close_ws(`ws-error ${err}`)})
 			ws.on('message', on_ws_message)
+			ws.on('pong', (buf)=>{
+				const [op, id] = buf2id(buf)
+				if ((id !== undefined) && (!!jammed_cb))
+					jammed_cb(op, id)
+			})
 			if (!!connected_cb)
 				connected_cb()
 		})
@@ -87,16 +97,16 @@ const open = (port, host, valid)=>{
 
 	return {
 		send: (buf, cb)=>{if (ws) {alive = true; ws.send(buf, cb)}},
+		jammed: (op, id)=>{if (ws) ws.pong(id2buf(op, id))},
 		start: start,
 		on_msg: on_msg,
+		on_jammed: on_jammed,
 		on_connected: on_connected,
 		on_disconnected: on_disconnected,
 		on_error: on_error,
 		connected: ()=>{return !!ws},
 		close: close,
 		buffered: ()=>{if (ws) return ws.bufferedAmount},
-		pause: ()=>{if (ws) ws.pause()},
-		resume: ()=>{if (ws) ws.resume()},
 	}
 }
 

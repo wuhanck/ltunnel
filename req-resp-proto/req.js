@@ -52,6 +52,12 @@ const open = (chnl, max_streams)=>{
 		if (!!resp)//FIX ME. Maybe we need do sth.
 			process_resp(resp)
 	}
+	const feed_jammed = (op, id)=>{
+		const stream = streams[id]
+		if (stream === undefined)
+			return
+		stream.jammed(op)
+	}
 	const open_stream = ()=>{
 		if (!chnl)
 			return null
@@ -59,6 +65,7 @@ const open = (chnl, max_streams)=>{
 		const stream_chnl = chnl
 		var close_cb
 		var msg_cb
+		var jammed_cb
 		var peer_end_cb
 		var id = streams_bitmap.ffz()//Flag.
 		if (id < 0)//NOTE. Maybe some LOG.
@@ -77,8 +84,10 @@ const open = (chnl, max_streams)=>{
 		}
 		const on_close = (cb)=>{close_cb = cb}
 		const on_msg = (cb)=>{msg_cb = cb}
+		const on_jammed = (cb)=>{jammed_cb = cb}
 		const on_peer_end = (cb)=>{peer_end_cb = cb}
 		const msg = (buf)=>{if (!!msg_cb) msg_cb(buf)}
+		const jammed = (op)=>{if (!!jammed_cb) jammed_cb(op)}
 		const peer_end = ()=>{if (!!peer_end_cb) peer_end_cb()}
 		const send = (buf, cb)=>{if (id < 0) return; stream_chnl.send(ReqParser.encode(id, buf), cb)}
 		const end = (buf)=>{if (id < 0) return; stream_chnl.send(ReqParser.encode_end(id, buf))}
@@ -88,23 +97,25 @@ const open = (chnl, max_streams)=>{
 		streams[id] = {
 			close: close,
 			msg: msg,
+			jammed: jammed,
 			peer_end: peer_end,
 		}
 		stream_chnl.send(ReqParser.encode_syn(id));
 		return {
 			send: send,
+			jammed: (op)=>{if (id < 0) return; stream_chnl.jammed(op, id)},//info remote
 			end: end,
 			rst: rst,
 			on_close: on_close,
 			on_msg: on_msg,
+			on_jammed: on_jammed,
 			on_peer_end: on_peer_end,
 			buffered: stream_chnl.buffered,
-			pause: stream_chnl.pause,
-			resume: stream_chnl.resume,
 		}
 	}
 	return {
 		feed_msg: feed_msg,
+		feed_jammed: feed_jammed,
 		clear: clear,
 		close: close,
 		open_stream: open_stream,
