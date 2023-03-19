@@ -3,7 +3,7 @@
 const id2buf = (op, id)=>{
 	const buf = Buffer.allocUnsafe(8)
 	buf.writeInt32LE(op)
-	buf.writeInt32LE(id)
+	buf.writeInt32LE(id, 4)
 	return buf
 }
 const buf2id = (buf)=>{

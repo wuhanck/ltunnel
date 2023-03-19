@@ -11,6 +11,7 @@ const open = (port, host, valid)=>{
 	var ws_srv = null
 	var ws = null//used for send
 
+	const pongbuf = id2buf(-1, -1)
 	var alive = true
 	var t2pong = null
 
@@ -53,7 +54,7 @@ const open = (port, host, valid)=>{
 
 	const restart_timeout = ()=>{
 		if (!alive)
-			ws.pong('x')
+			ws.pong(pongbuf)
 
 		alive = false
 		clearTimeout(t2pong)
