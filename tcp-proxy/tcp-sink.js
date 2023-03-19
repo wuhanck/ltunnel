@@ -24,7 +24,7 @@ const open = (port, host, resp_srv)=>{
 				client.pause()
 
 			stream.send(buf, ()=>{
-				if (do_resume)
+				if (do_pause)
 					client.resume()
 			})
 		})
