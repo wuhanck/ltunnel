@@ -13,7 +13,7 @@ const rinfo_compare = (ra, rb)=>{
 }
 
 const VCON_TIMEOUT = 240*1000
-const HIGH_WATER = 8*1024*1024
+const HIGH_WATER = 256*1024
 
 const gen_vcon = (vcons, s, rinfo, msg_cb)=>{
 	var close_cb

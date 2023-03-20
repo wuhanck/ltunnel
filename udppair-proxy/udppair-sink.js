@@ -2,7 +2,7 @@
 
 const dgram = require('dgram')
 
-const HIGH_WATER = 8*1024*1024
+const HIGH_WATER = 256*1024
 
 const open = (port, host, resp_srv, dport, dst)=>{
 	var srv = dgram.createSocket('udp4')
