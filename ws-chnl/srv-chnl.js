@@ -87,8 +87,16 @@ const open = (port, host, valid)=>{
 			ws.on('error', (err)=>{if (!!error_cb) error_cb(err); close_ws(`ws-error ${err}`)})
 			ws.on('message', on_ws_message)
 			ws.on('pong', (buf)=>{
+				if (!buf)
+					return
+				if (buf.length !== 8)
+					return
 				const [op, id] = buf2id(buf)
-				if ((id !== undefined) && (!!jammed_cb))
+				if (id === -1) {
+					console.log('pong')//heart-beat
+					return
+				}
+				if (!!jammed_cb)
 					jammed_cb(op, id)
 			})
 			if (!!connected_cb)

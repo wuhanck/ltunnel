@@ -82,8 +82,16 @@ const open = (path, origin)=>{
 			ws.on('message', (msg, is_bin)=>{alive = true; on_ws_message(msg, is_bin)})
 			ws.on('pong', (buf)=>{
 				alive = true
+				if (!buf)
+					return
+				if (buf.length !== 8)
+					return
 				const [op, id] = buf2id(buf)
-				if ((id !== undefined) && (!!jammed_cb))
+				if (id === -1) {
+					console.log('pong')//heart-beat
+					return
+				}
+				if (!!jammed_cb)
 					jammed_cb(op, id)
 			})
 			if (!!connected_cb)
