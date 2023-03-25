@@ -39,6 +39,7 @@ const open = (path, origin)=>{
 		ws_tmp.removeEventListener('error')
 		ws_tmp.removeEventListener('pong')
 		ws_tmp.removeEventListener('message')
+		ws_tmp.on('error', ()=>{})
 		ws_tmp.close()
 	}
 	const close_and_restart = (err)=>{

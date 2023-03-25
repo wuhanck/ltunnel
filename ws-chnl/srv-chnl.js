@@ -49,6 +49,7 @@ const open = (port, host, valid)=>{
 		ws_tmp.removeEventListener('error')
 		ws_tmp.removeEventListener('message')
 		ws_tmp.removeEventListener('pong')
+		ws_tmp.on('error', ()=>{})
 		ws_tmp.close()
 	}
 
