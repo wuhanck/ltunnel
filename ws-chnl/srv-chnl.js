@@ -54,10 +54,8 @@ const open = (port, host, valid)=>{
 	}
 
 	const restart_timeout = ()=>{
-		if (!alive) {
+		if (!alive)
 			ws.pong(pongbuf)
-			ws.ping()//for old version. FIX ME
-		}
 
 		alive = false
 		clearTimeout(t2pong)
