@@ -75,7 +75,13 @@ const open = (path, origin)=>{
 	const start = ()=>{
 		if (!!ws)
 			return
-		ws = new WebSocket(path, {origin: origin})
+		try {
+			ws = new WebSocket(path, {origin: origin})
+		} catch (e) {
+			console.log(e)
+			close_and_restart(`new WebSocket ${path} failed`)
+			return
+		}
 		ws.on('close', (code, reason)=>{close_and_restart(`ws-close ${code} ${reason}`)})
 		ws.on('error', (err)=>{if (!!error_cb) error_cb(err); close_and_restart(`ws-error ${err}`)})
 		ws.on('open', ()=>{

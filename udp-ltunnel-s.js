@@ -13,7 +13,7 @@ const valid = origin=>origin == s_origin
 
 const req_port = src_port + 10000
 const req_host = '0.0.0.0'
-const MAX_STREAMS = 4096
+const MAX_STREAMS = 8192
 
 const req_srv = ReqPubOpen(req_port, req_host, MAX_STREAMS, valid)
 open(src_port, src_host, req_srv)

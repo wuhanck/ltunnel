@@ -60,7 +60,7 @@ kwargs.ws_token = argv['ws-token']
 console.log('args:')
 
 if (kwargs.site === 'cloud') {
-	kwargs.MAX_STREAMS = 4096
+	kwargs.MAX_STREAMS = 8192
 	console.log(kwargs)
 	const valid = (token)=>(token === kwargs.ws_token)
 	const req_srv = ReqPubOpen(kwargs.ws_port, kwargs.ws_ip, kwargs.MAX_STREAMS, valid)
