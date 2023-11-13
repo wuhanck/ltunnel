@@ -10,6 +10,7 @@ const open = (path, origin)=>{
 
 	var ws = null//Flag
 	var ws_chnl = null//if connected, it is ws
+	var quitting = false
 
 	var alive = true
 	var t2close = null
@@ -42,10 +43,15 @@ const open = (path, origin)=>{
 		ws_tmp.on('error', ()=>{})
 		ws_tmp.close()
 	}
+	const close_quitting = ()=>{
+		quitting = true
+		close()
+	}
 	const close_and_restart = (err)=>{
 		console.log(err)
 		close()
-		setTimeout(start, 5000)
+		if (!quitting)
+			setTimeout(start, 5000)
 	}
 
 	const restart_timeout = ()=>{
@@ -117,7 +123,7 @@ const open = (path, origin)=>{
 		on_disconnected: on_disconnected,
 		on_error: on_error,
 		connected: ()=>{return !!ws_chnl},
-		close: close,
+		close: close_quitting,
 		buffered: ()=>{if (ws_chnl) return ws_chnl.bufferedAmount},
 	}
 }
