@@ -5,6 +5,8 @@ const {WebSocket} = require('ws')
 
 const {id2buf, buf2id} = require('./idbuf')
 
+const pongbuf = id2buf(-1, -1)
+
 const open = (path, origin)=>{
 	Assert(!!path)
 
@@ -79,7 +81,7 @@ const open = (path, origin)=>{
 	const on_error = (cb)=>{error_cb = cb}
 
 	const start = ()=>{
-		if (!!ws)
+		if ((!!ws) || quitting)
 			return
 		try {
 			ws = new WebSocket(path, {origin: origin})
@@ -95,13 +97,18 @@ const open = (path, origin)=>{
 			ws.on('message', (msg, is_bin)=>{alive = true; on_ws_message(msg, is_bin)})
 			ws.on('pong', (buf)=>{
 				alive = true
-				if (!buf)
+				if (!buf) {
+					console.log('check! null pong')
 					return
-				if (buf.length !== 8)
+				}
+				if (buf.length !== 8) {
+					console.log('check! malform pong')
 					return
+				}
 				const [op, id] = buf2id(buf)
 				if (id === -1) {
-					console.log('pong')//heart-beat
+					console.log('heart-beat pong')//heart-beat
+					ws.pong(pongbuf)
 					return
 				}
 				if (!!jammed_cb)

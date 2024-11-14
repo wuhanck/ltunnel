@@ -5,14 +5,15 @@ const {WebSocketServer} = require('ws')
 
 const {id2buf, buf2id} = require('./idbuf')
 
+const pongbuf = id2buf(-1, -1)
+
 const open = (port, host, valid)=>{
 	Assert(!!port)
 
 	var ws_srv = null
 	var ws = null//used for send
 
-	const pongbuf = id2buf(-1, -1)
-	var alive = true
+	var alive = 0//alive or heartbeat timeout or not ack
 	var t2pong = null
 
 	var msg_cb
@@ -38,7 +39,7 @@ const open = (port, host, valid)=>{
 		const ws_tmp = ws
 		ws = null
 
-		alive = true
+		alive = 0
 		clearTimeout(t2pong)
 		t2pong = null
 
@@ -54,10 +55,15 @@ const open = (port, host, valid)=>{
 	}
 
 	const restart_timeout = ()=>{
-		if (!alive)
+		if (alive > 3) {
+			close_ws('alive timeout')
+			return
+		}
+
+		if (alive != 0)
 			ws.pong(pongbuf)
 
-		alive = false
+		alive += 1
 		clearTimeout(t2pong)
 		t2pong = setTimeout(restart_timeout, 1*20*1000)
 	}
@@ -86,15 +92,20 @@ const open = (port, host, valid)=>{
 			restart_timeout()
 			ws.on('close', (code, reason)=>{close_ws(`ws-close ${code} ${reason}`)})
 			ws.on('error', (err)=>{if (!!error_cb) error_cb(err); close_ws(`ws-error ${err}`)})
-			ws.on('message', on_ws_message)
+			ws.on('message', (msg, is_bin)=>{alive = 0; on_ws_message(msg, is_bin)})
 			ws.on('pong', (buf)=>{
-				if (!buf)
+				alive = 0
+				if (!buf) {
+					console.log('check! null pong')
 					return
-				if (buf.length !== 8)
+				}
+				if (buf.length !== 8) {
+					console.log('check! malform pong')
 					return
+				}
 				const [op, id] = buf2id(buf)
 				if (id === -1) {
-					console.log('pong')//heart-beat
+					console.log('heart-beat pong')//heart-beat
 					return
 				}
 				if (!!jammed_cb)
@@ -106,7 +117,7 @@ const open = (port, host, valid)=>{
 	}
 
 	return {
-		send: (buf, cb)=>{if (ws) {alive = true; ws.send(buf, cb)}},
+		send: (buf, cb)=>{if (ws) ws.send(buf, cb)},
 		jammed: (op, id)=>{if (ws) ws.pong(id2buf(op, id))},
 		start: start,
 		on_msg: on_msg,
