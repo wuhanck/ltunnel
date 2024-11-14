@@ -37,11 +37,11 @@ const open = (path, origin)=>{
 		if (!!disconnected_cb)
 			disconnected_cb()
 
-		ws_tmp.removeEventListener('open')
-		ws_tmp.removeEventListener('close')
-		ws_tmp.removeEventListener('error')
-		ws_tmp.removeEventListener('pong')
-		ws_tmp.removeEventListener('message')
+		ws_tmp.removeAllListeners('close')
+		ws_tmp.removeAllListeners('error')
+		ws_tmp.removeAllListeners('open')
+		ws_tmp.removeAllListeners('message')
+		ws_tmp.removeAllListeners('pong')
 		ws_tmp.on('error', ()=>{})
 		ws_tmp.close()
 	}
@@ -62,7 +62,7 @@ const open = (path, origin)=>{
 		} else {
 			alive = false
 			clearTimeout(t2close)
-			t2close = setTimeout(restart_timeout, 3*20*1000)//3 times of default pong
+			t2close = setTimeout(restart_timeout, 3*40*1000)//3 times of worst case pong
 		}
 	}
 
@@ -108,7 +108,7 @@ const open = (path, origin)=>{
 				const [op, id] = buf2id(buf)
 				if (id === -1) {
 					console.log('heart-beat pong')//heart-beat
-					ws.pong(pongbuf)
+					ws_chnl.pong(pongbuf)
 					return
 				}
 				if (!!jammed_cb)

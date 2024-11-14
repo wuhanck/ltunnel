@@ -46,10 +46,10 @@ const open = (port, host, valid)=>{
 		if (!!disconnected_cb)
 			disconnected_cb()
 
-		ws_tmp.removeEventListener('close')
-		ws_tmp.removeEventListener('error')
-		ws_tmp.removeEventListener('message')
-		ws_tmp.removeEventListener('pong')
+		ws_tmp.removeAllListeners('close')
+		ws_tmp.removeAllListeners('error')
+		ws_tmp.removeAllListeners('message')
+		ws_tmp.removeAllListeners('pong')
 		ws_tmp.on('error', ()=>{})
 		ws_tmp.close()
 	}
