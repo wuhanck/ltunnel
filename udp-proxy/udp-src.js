@@ -1,7 +1,7 @@
 'use strict'
 
 const dgram = require('dgram')
-const avl = require('avl').default
+const avl = require('avl').AVLTree
 const enCollator = new Intl.Collator('en')
 
 const rinfo_compare = (ra, rb)=>{

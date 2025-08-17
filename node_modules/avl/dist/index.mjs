@@ -1,0 +1,594 @@
+var __defProp = Object.defineProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+/**
+ * avl v2.0.0
+ * Fast AVL tree for Node and browser
+ *
+ * @author Alexander Milevski <alex@milevski.co>
+ * @license MIT
+ * @preserve
+ */
+function print(root, printNode = (n) => n.key) {
+  const out = [];
+  row(root, "", true, (v) => out.push(v), printNode);
+  return out.join("");
+}
+function row(root, prefix, isTail, out, printNode) {
+  if (root) {
+    out(`${prefix}${isTail ? "└── " : "├── "}${printNode(root)}
+`);
+    const indent = prefix + (isTail ? "    " : "│   ");
+    if (root.left) row(root.left, indent, false, out, printNode);
+    if (root.right) row(root.right, indent, true, out, printNode);
+  }
+}
+function isBalanced(root) {
+  if (root === null) return true;
+  const lh = height(root.left);
+  const rh = height(root.right);
+  if (Math.abs(lh - rh) <= 1 && isBalanced(root.left) && isBalanced(root.right))
+    return true;
+  return false;
+}
+function height(node) {
+  return node ? 1 + Math.max(height(node.left), height(node.right)) : 0;
+}
+function loadRecursive(parent, keys, values, start, end) {
+  const size = end - start;
+  if (size > 0) {
+    const middle = start + Math.floor(size / 2);
+    const key = keys[middle];
+    const data = values[middle];
+    const node = { key, data, parent };
+    node.left = loadRecursive(node, keys, values, start, middle);
+    node.right = loadRecursive(node, keys, values, middle + 1, end);
+    return node;
+  }
+  return null;
+}
+function markBalance(node) {
+  if (node === null) return 0;
+  const lh = markBalance(node.left);
+  const rh = markBalance(node.right);
+  node.balanceFactor = lh - rh;
+  return Math.max(lh, rh) + 1;
+}
+function sort(keys, values, left, right, compare) {
+  if (left >= right) return;
+  const pivot = keys[left + right >> 1];
+  let i = left - 1;
+  let j = right + 1;
+  while (true) {
+    do
+      i++;
+    while (compare(keys[i], pivot) < 0);
+    do
+      j--;
+    while (compare(keys[j], pivot) > 0);
+    if (i >= j) break;
+    const tmpk = keys[i];
+    keys[i] = keys[j];
+    keys[j] = tmpk;
+    const tmpv = values[i];
+    values[i] = values[j];
+    values[j] = tmpv;
+  }
+  sort(keys, values, left, j, compare);
+  sort(keys, values, j + 1, right, compare);
+}
+function DEFAULT_COMPARE(a, b) {
+  return a > b ? 1 : a < b ? -1 : 0;
+}
+function rotateLeft(node) {
+  const rightNode = node.right;
+  node.right = rightNode.left;
+  if (rightNode.left) rightNode.left.parent = node;
+  rightNode.parent = node.parent;
+  if (rightNode.parent) {
+    if (rightNode.parent.left === node) {
+      rightNode.parent.left = rightNode;
+    } else {
+      rightNode.parent.right = rightNode;
+    }
+  }
+  node.parent = rightNode;
+  rightNode.left = node;
+  node.balanceFactor += 1;
+  if (rightNode.balanceFactor < 0) {
+    node.balanceFactor -= rightNode.balanceFactor;
+  }
+  rightNode.balanceFactor += 1;
+  if (node.balanceFactor > 0) {
+    rightNode.balanceFactor += node.balanceFactor;
+  }
+  return rightNode;
+}
+function rotateRight(node) {
+  const leftNode = node.left;
+  node.left = leftNode.right;
+  if (node.left) node.left.parent = node;
+  leftNode.parent = node.parent;
+  if (leftNode.parent) {
+    if (leftNode.parent.left === node) {
+      leftNode.parent.left = leftNode;
+    } else {
+      leftNode.parent.right = leftNode;
+    }
+  }
+  node.parent = leftNode;
+  leftNode.right = node;
+  node.balanceFactor -= 1;
+  if (leftNode.balanceFactor > 0) {
+    node.balanceFactor -= leftNode.balanceFactor;
+  }
+  leftNode.balanceFactor -= 1;
+  if (node.balanceFactor < 0) {
+    leftNode.balanceFactor += node.balanceFactor;
+  }
+  return leftNode;
+}
+class AVLTree {
+  constructor(comparator = DEFAULT_COMPARE, noDuplicates = false) {
+    __publicField(this, "_comparator");
+    __publicField(this, "_root");
+    __publicField(this, "_size");
+    __publicField(this, "_noDuplicates");
+    this._comparator = comparator || DEFAULT_COMPARE;
+    this._root = null;
+    this._size = 0;
+    this._noDuplicates = !!noDuplicates;
+  }
+  /**
+   * Clear the tree
+   */
+  destroy() {
+    return this.clear();
+  }
+  /**
+   * Clear the tree
+   * @return {AVLTree}
+   */
+  clear() {
+    this._root = null;
+    this._size = 0;
+    return this;
+  }
+  /**
+   * Number of nodes
+   * @return {number}
+   */
+  get size() {
+    return this._size;
+  }
+  get root() {
+    return this._root;
+  }
+  /**
+   * Whether the tree contains a node with the given key
+   */
+  contains(key) {
+    if (this._root) {
+      let node = this._root;
+      const comparator = this._comparator;
+      while (node) {
+        const cmp = comparator(key, node.key);
+        if (cmp === 0) return true;
+        else if (cmp < 0) node = node.left;
+        else node = node.right;
+      }
+    }
+    return false;
+  }
+  /**
+   * Successor node
+   */
+  next(node) {
+    let successor = node;
+    if (successor) {
+      if (successor.right) {
+        successor = successor.right;
+        while (successor.left) successor = successor.left;
+      } else {
+        successor = node.parent;
+        while (successor && successor.right === node) {
+          node = successor;
+          successor = successor.parent;
+        }
+      }
+    }
+    return successor;
+  }
+  /**
+   * Predecessor node
+   */
+  prev(node) {
+    let predecessor = node;
+    if (predecessor) {
+      if (predecessor.left) {
+        predecessor = predecessor.left;
+        while (predecessor.right) predecessor = predecessor.right;
+      } else {
+        predecessor = node.parent;
+        while (predecessor && predecessor.left === node) {
+          node = predecessor;
+          predecessor = predecessor.parent;
+        }
+      }
+    }
+    return predecessor;
+  }
+  /**
+   * @param  {forEachCallback} callback
+   * @return {AVLTree}
+   */
+  forEach(callback) {
+    let current = this._root;
+    const s = [];
+    let done = false;
+    let i = 0;
+    while (!done) {
+      if (current) {
+        s.push(current);
+        current = current.left;
+      } else {
+        if (s.length > 0) {
+          current = s.pop();
+          callback(current, i++);
+          current = current.right;
+        } else done = true;
+      }
+    }
+    return this;
+  }
+  /**
+   * Walk key range from `low` to `high`. Stops if `fn` returns a value.
+   * @param  {Key}      low
+   * @param  {Key}      high
+   * @param  {Function} fn
+   * @param  {*?}       ctx
+   * @return {SplayTree}
+   */
+  range(low, high, fn, ctx) {
+    const Q = [];
+    const compare = this._comparator;
+    let node = this._root;
+    while (Q.length !== 0 || node) {
+      if (node) {
+        Q.push(node);
+        node = node.left;
+      } else {
+        node = Q.pop();
+        const cmp = compare(node.key, high);
+        if (cmp > 0) break;
+        else if (compare(node.key, low) >= 0) {
+          if (fn.call(ctx, node)) return this;
+        }
+        node = node.right;
+      }
+    }
+    return this;
+  }
+  /**
+   * Returns all keys in order
+   */
+  keys() {
+    let current = this._root;
+    const s = [];
+    const r = [];
+    let done = false;
+    while (!done) {
+      if (current) {
+        s.push(current);
+        current = current.left;
+      } else {
+        if (s.length > 0) {
+          current = s.pop();
+          r.push(current.key);
+          current = current.right;
+        } else done = true;
+      }
+    }
+    return r;
+  }
+  /**
+   * Returns `data` fields of all nodes in order.
+   */
+  values() {
+    let current = this._root;
+    const s = [];
+    const r = [];
+    let done = false;
+    while (!done) {
+      if (current) {
+        s.push(current);
+        current = current.left;
+      } else {
+        if (s.length > 0) {
+          current = s.pop();
+          r.push(current.data);
+          current = current.right;
+        } else done = true;
+      }
+    }
+    return r;
+  }
+  /**
+   * Returns node at given index
+   */
+  at(index) {
+    let current = this._root;
+    const s = [];
+    let done = false;
+    let i = 0;
+    while (!done) {
+      if (current) {
+        s.push(current);
+        current = current.left;
+      } else {
+        if (s.length > 0) {
+          current = s.pop();
+          if (i === index) return current;
+          i++;
+          current = current.right;
+        } else done = true;
+      }
+    }
+    return null;
+  }
+  /**
+   * Returns node with the minimum key
+   */
+  minNode() {
+    let node = this._root;
+    if (!node) return null;
+    while (node.left) node = node.left;
+    return node;
+  }
+  /**
+   * Returns node with the max key
+   */
+  maxNode() {
+    let node = this._root;
+    if (!node) return null;
+    while (node.right) node = node.right;
+    return node;
+  }
+  /**
+   * Min key
+   */
+  min() {
+    let node = this._root;
+    if (!node) return null;
+    while (node.left) node = node.left;
+    return node.key;
+  }
+  /**
+   * Max key
+   */
+  max() {
+    let node = this._root;
+    if (!node) return null;
+    while (node.right) node = node.right;
+    return node.key;
+  }
+  /**
+   * @return {boolean} true/false
+   */
+  isEmpty() {
+    return this._root === null;
+  }
+  /**
+   * Removes and returns the node with smallest key
+   */
+  pop() {
+    let node = this._root;
+    let returnValue = null;
+    if (node) {
+      while (node.left) node = node.left;
+      returnValue = { key: node.key, data: node.data };
+      this.remove(node.key);
+    }
+    return returnValue;
+  }
+  /**
+   * Removes and returns the node with highest key
+   */
+  popMax() {
+    let node = this._root;
+    let returnValue = null;
+    if (node) {
+      while (node.right) node = node.right;
+      returnValue = { key: node.key, data: node.data };
+      this.remove(node.key);
+    }
+    return returnValue;
+  }
+  /**
+   * Find node by key
+   */
+  find(key) {
+    const root = this._root;
+    let subtree = root;
+    const compare = this._comparator;
+    while (subtree) {
+      const cmp = compare(key, subtree.key);
+      if (cmp === 0) return subtree;
+      else if (cmp < 0) subtree = subtree.left;
+      else subtree = subtree.right;
+    }
+    return null;
+  }
+  /**
+   * Insert a node into the tree
+   */
+  insert(key, data) {
+    if (!this._root) {
+      this._root = {
+        parent: null,
+        left: null,
+        right: null,
+        balanceFactor: 0,
+        key,
+        data
+      };
+      this._size++;
+      return this._root;
+    }
+    const compare = this._comparator;
+    let node = this._root;
+    let parent = null;
+    let cmp = 0;
+    if (this._noDuplicates) {
+      while (node) {
+        cmp = compare(key, node.key);
+        parent = node;
+        if (cmp === 0) return null;
+        else if (cmp < 0) node = node.left;
+        else node = node.right;
+      }
+    } else {
+      while (node) {
+        cmp = compare(key, node.key);
+        parent = node;
+        if (cmp <= 0) node = node.left;
+        else node = node.right;
+      }
+    }
+    const newNode = {
+      left: null,
+      right: null,
+      balanceFactor: 0,
+      parent,
+      key,
+      data
+    };
+    let newRoot = null;
+    if (cmp <= 0) parent.left = newNode;
+    else parent.right = newNode;
+    while (parent) {
+      cmp = compare(parent.key, key);
+      if (cmp < 0) parent.balanceFactor -= 1;
+      else parent.balanceFactor += 1;
+      if (parent.balanceFactor === 0) break;
+      else if (parent.balanceFactor < -1) {
+        if (parent.right.balanceFactor === 1) rotateRight(parent.right);
+        newRoot = rotateLeft(parent);
+        if (parent === this._root) this._root = newRoot;
+        break;
+      } else if (parent.balanceFactor > 1) {
+        if (parent.left.balanceFactor === -1) rotateLeft(parent.left);
+        newRoot = rotateRight(parent);
+        if (parent === this._root) this._root = newRoot;
+        break;
+      }
+      parent = parent.parent;
+    }
+    this._size++;
+    return newNode;
+  }
+  /**
+   * Removes the node from the tree. If not found, returns null.
+   */
+  remove(key) {
+    if (!this._root) return null;
+    let node = this._root;
+    const compare = this._comparator;
+    let cmp = 0;
+    while (node) {
+      cmp = compare(key, node.key);
+      if (cmp === 0) break;
+      else if (cmp < 0) node = node.left;
+      else node = node.right;
+    }
+    if (!node) return null;
+    const returnValue = node.key;
+    let max, min;
+    if (node.left) {
+      max = node.left;
+      while (max.left || max.right) {
+        while (max.right) max = max.right;
+        node.key = max.key;
+        node.data = max.data;
+        if (max.left) {
+          node = max;
+          max = max.left;
+        }
+      }
+      node.key = max.key;
+      node.data = max.data;
+      node = max;
+    }
+    if (node.right) {
+      min = node.right;
+      while (min.left || min.right) {
+        while (min.left) min = min.left;
+        node.key = min.key;
+        node.data = min.data;
+        if (min.right) {
+          node = min;
+          min = min.right;
+        }
+      }
+      node.key = min.key;
+      node.data = min.data;
+      node = min;
+    }
+    let parent = node.parent;
+    let pp = node;
+    let newRoot;
+    while (parent) {
+      if (parent.left === pp) parent.balanceFactor -= 1;
+      else parent.balanceFactor += 1;
+      if (parent.balanceFactor < -1) {
+        if (parent.right.balanceFactor === 1) rotateRight(parent.right);
+        newRoot = rotateLeft(parent);
+        if (parent === this._root) this._root = newRoot;
+        parent = newRoot;
+      } else if (parent.balanceFactor > 1) {
+        if (parent.left.balanceFactor === -1) rotateLeft(parent.left);
+        newRoot = rotateRight(parent);
+        if (parent === this._root) this._root = newRoot;
+        parent = newRoot;
+      }
+      if (parent.balanceFactor === -1 || parent.balanceFactor === 1) break;
+      pp = parent;
+      parent = parent.parent;
+    }
+    if (node.parent) {
+      if (node.parent.left === node) node.parent.left = null;
+      else node.parent.right = null;
+    }
+    if (node === this._root) this._root = null;
+    this._size--;
+    return returnValue;
+  }
+  /**
+   * Bulk-load items
+   */
+  load(keys = [], values = [], presort) {
+    if (this._size !== 0) throw new Error("bulk-load: tree is not empty");
+    const size = keys.length;
+    if (presort) sort(keys, values, 0, size - 1, this._comparator);
+    this._root = loadRecursive(null, keys, values, 0, size);
+    markBalance(this._root);
+    this._size = size;
+    return this;
+  }
+  /**
+   * Returns true if the tree is balanced
+   */
+  isBalanced() {
+    return isBalanced(this._root);
+  }
+  /**
+   * String representation of the tree - primitive horizontal print-out
+   */
+  toString(printNode) {
+    return print(this._root, printNode);
+  }
+}
+export {
+  AVLTree,
+  AVLTree as Tree
+};
